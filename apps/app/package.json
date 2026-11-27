@@ -10,7 +10,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "desktop": "npm run build && electron .",
-    "dist:win": "npm run build && electron-builder --win nsis"
+    "dist:win": "npm run build && electron-builder --win nsis --publish never"
   },
   "dependencies": {
     "@quickdrawjs/core": "^0.3.0"
@@ -48,5 +48,9 @@
       "createStartMenuShortcut": true
     },
     "artifactName": "Canvas-Setup-${version}.${ext}"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/naumaan27/canvas.git"
   }
 }
