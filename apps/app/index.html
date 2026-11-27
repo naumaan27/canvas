@@ -70,7 +70,7 @@
 
     /* File bar — files menu, new file, and the current file's name. */
     .qd-filebar {
-      position: fixed; left: 152px; top: 10px; z-index: 60;
+      position: fixed; left: 10px; top: 10px; z-index: 60;
       display: flex; align-items: center; gap: 2px;
       padding: 4px 6px; border-radius: 999px;
       font: 500 14px/1 ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
@@ -132,9 +132,7 @@
 
     @media (max-width: 560px) {
       /* the wordmark folds to its glyph so the file bar fits beside it */
-      .qd-app-logo { padding: 8px 11px; }
-      .qd-app-logo .logo-word { display: none; }
-      .qd-filebar { left: 60px; }
+      .qd-filebar { left: 10px; }
       .qd-file-name { max-width: 110px; }
       .qd-files-menu { left: 14px; }
     }
@@ -142,19 +140,15 @@
 </head>
 <body>
   <div id="board"></div>
-  <div class="qd-app-logo" id="logo" aria-label="Canvas">
-    <img src="/favicon.png" alt="" width="20" height="20" />
-    <span class="logo-word">Canvas</span>
-  </div>
   <div class="qd-filebar" id="filebar">
-    <button class="qd-file-btn" id="files-btn" type="button" title="Your files" aria-label="Your files" aria-haspopup="true" aria-expanded="false">
-      <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-        <path d="M2.5 5.5 A1.8 1.8 0 0 1 4.3 3.7 H7.4 L9.2 5.6 H15.7 A1.8 1.8 0 0 1 17.5 7.4 V14.5 A1.8 1.8 0 0 1 15.7 16.3 H4.3 A1.8 1.8 0 0 1 2.5 14.5 Z"/>
+    <button class="qd-file-btn" id="files-btn" type="button" title="Back to canvases" aria-label="Back to canvases">
+      <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M12.5 4.5 7 10l5.5 5.5"/><path d="M7.5 10H17"/>
       </svg>
     </button>
-    <button class="qd-file-btn" id="new-file-btn" type="button" title="New file" aria-label="New file">
-      <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" aria-hidden="true">
-        <path d="M10 4.5 V15.5 M4.5 10 H15.5"/>
+    <button class="qd-file-btn" id="new-file-btn" type="button" title="Save canvas" aria-label="Save canvas">
+      <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M3.5 3.5h10l3 3v10h-13z"/><path d="M6.5 3.5v5h7v-5M6.5 16.5v-5h7v5"/>
       </svg>
     </button>
     <input class="qd-file-name" id="file-name" type="text" value="Untitled" spellcheck="false" autocomplete="off" aria-label="File name" />
