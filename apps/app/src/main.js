@@ -13,6 +13,7 @@ const board = createQuickdraw({
   container: document.getElementById('board'),
   theme,
   grid: 'lines',
+  watermark: false,
 })
 
 const { editor } = board
