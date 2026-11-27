@@ -8,8 +8,8 @@ export default defineConfig({
   base: './',
   resolve: {
     alias: [
-      { find: /^@quickdrawjs\\/core$/, replacement: core + 'index.js' },
-      { find: /^@quickdrawjs\\/core\\/(quickdraw|styles)\\.css$/, replacement: core + 'quickdraw.css' },
+      { find: /^@quickdrawjs\/core$/, replacement: core + 'index.js' },
+      { find: /^@quickdrawjs\/core\/(quickdraw|styles)\.css$/, replacement: core + 'quickdraw.css' },
     ],
   },
 })
