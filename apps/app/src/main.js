@@ -141,23 +141,6 @@ function createFile() {
   nameInput.select()
 }
 
-newBtn.addEventListener('click', createFile)
-
-function deleteFile(id) {
-  const file = index.files.find((f) => f.id === id)
-  if (!file || index.files.length <= 1) return
-  if (!window.confirm(`Delete “${file.name}”? This can't be undone.`)) return
-  index.files = index.files.filter((f) => f.id !== id)
-  localStorage.removeItem(fileKey(id))
-  if (index.current === id) {
-    const next = [...index.files].sort((a, b) => b.updatedAt - a.updatedAt)[0]
-    openFile(next.id)
-  } else {
-    saveIndex()
-  }
-  renderMenu()
-}
-
 // Rename: commit on Enter/blur, never allow an empty name.
 nameInput.addEventListener('input', sizeNameInput)
 nameInput.addEventListener('keydown', (e) => {
