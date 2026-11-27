@@ -18,7 +18,7 @@ const RESIZE_CURSORS = {
   tl: 'nwse-resize', br: 'nwse-resize', tr: 'nesw-resize', bl: 'nesw-resize',
   t: 'ns-resize', b: 'ns-resize', l: 'ew-resize', r: 'ew-resize',
 }
-const DEFAULT_STYLES = { color: 'blue', size: 'm', dash: 'draw', fill: 'none', font: 'draw', opacity: 1 }
+const DEFAULT_STYLES = { color: 'blue', strokeColor: null, fillColor: null, size: 'm', dash: 'draw', fill: 'none', font: 'draw', opacity: 1 }
 const ALL_TYPES = ['draw', 'highlight', 'geo', 'arrow', 'line', 'text', 'note', 'image']
 
 const hundredth = (v) => Math.round(v * 100) / 100
@@ -360,19 +360,31 @@ export class Editor {
   }
   setStyle(key, value) {
     this.styles = { ...this.styles, [key]: value }
+    // Choosing a palette colour restores its linked stroke/fill palette pair.
+    if (key === 'color') {
+      this.styles.strokeColor = null
+      this.styles.fillColor = null
+    }
     if (this.selection.size) {
       const APPLIES = {
         color: ['draw', 'highlight', 'geo', 'arrow', 'line', 'text', 'note'],
         size: ['draw', 'highlight', 'geo', 'arrow', 'line', 'text', 'note'],
         dash: ['draw', 'geo', 'arrow', 'line'],
         fill: ['geo'],
+        strokeColor: ['geo'],
+        fillColor: ['geo'],
         font: ['text', 'note', 'geo'],
         opacity: ALL_TYPES,
       }
       this.store.transact(() => {
         for (const id of this.selection) {
           const s = this.store.get(id)
-          if (s && APPLIES[key]?.includes(s.type)) this.store.update(id, { props: { [key]: value } })
+          if (s && APPLIES[key]?.includes(s.type)) {
+            const props = key === 'color' && s.type === 'geo'
+              ? { color: value, strokeColor: null, fillColor: null }
+              : { [key]: value }
+            this.store.update(id, { props })
+          }
         }
       })
     }
@@ -389,7 +401,7 @@ export class Editor {
     for (const id of this.selection) {
       const s = this.store.get(id)
       if (!s) continue
-      for (const k of ['color', 'size', 'dash', 'fill', 'font', 'opacity']) {
+      for (const k of ['color', 'strokeColor', 'fillColor', 'size', 'dash', 'fill', 'font', 'opacity']) {
         // shapes from before the opacity style draw fully opaque
         const v = k === 'opacity' ? s.props.opacity ?? 1 : s.props[k]
         if (v === undefined) continue
@@ -963,8 +975,8 @@ export class Editor {
       id, typeName: 'shape', type: 'geo', x: p.x, y: p.y, rot: 0, z: this.store.maxZ() + 1,
       props: {
         geo: this.geoKind, w: 1, h: 1,
-        color: this.styles.color, size: this.styles.size,
-        dash: this.styles.dash, fill: this.styles.fill, font: this.styles.font,
+        color: this.styles.color, strokeColor: this.styles.strokeColor, fillColor: this.styles.fillColor,
+        size: this.styles.size, dash: this.styles.dash, fill: this.styles.fill, font: this.styles.font,
         ...this._opacityProp(),
       },
     })
