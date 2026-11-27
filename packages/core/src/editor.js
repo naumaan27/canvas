@@ -403,7 +403,10 @@ export class Editor {
       if (!s) continue
       for (const k of ['color', 'strokeColor', 'fillColor', 'size', 'dash', 'fill', 'font', 'opacity']) {
         // shapes from before the opacity style draw fully opaque
-        const v = k === 'opacity' ? s.props.opacity ?? 1 : s.props[k]
+        const v = k === 'opacity' ? s.props.opacity ?? 1
+          : k === 'strokeColor' ? s.props.strokeColor || this.theme.colors[s.props.color || 'black'].stroke
+          : k === 'fillColor' ? s.props.fillColor || this.theme.colors[s.props.color || 'black'].fill
+          : s.props[k]
         if (v === undefined) continue
         if (!(k in out)) out[k] = v
         else if (out[k] !== v) out[k] = null
