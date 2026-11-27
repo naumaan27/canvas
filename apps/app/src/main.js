@@ -224,6 +224,158 @@ nameInput.addEventListener('blur', () => {
 openFile(currentFile().id)
 sizeNameInput()
 
+
+/* ---- Canvas home / board manager ----------------------------------------- */
+const homeStyle = document.createElement('style')
+homeStyle.textContent = `
+  .canvas-home { position:fixed; inset:0; z-index:100; overflow:auto; color:#20201e;
+    background:radial-gradient(ellipse at 80% -10%,rgba(92,126,255,.10),transparent 42%),#f7f7f5;
+    font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif; }
+  :root.dark .canvas-home { color:#f4f4f1; background:radial-gradient(ellipse at 80% -10%,rgba(92,126,255,.12),transparent 42%),#171816; }
+  .ch-wrap { max-width:1160px; margin:0 auto; padding:48px 32px 64px; }
+  .ch-top { display:flex; align-items:center; justify-content:space-between; gap:20px; margin-bottom:58px; }
+  .ch-brand { display:flex; align-items:center; gap:11px; font-size:18px; font-weight:750; letter-spacing:-.5px; }
+  .ch-mark { width:34px;height:34px;border-radius:11px;display:grid;place-items:center;background:#252b3a;color:white;font-size:19px; }
+  .ch-top-note { color:#888; font-size:13px; }
+  .ch-heading { font-size:clamp(30px,5vw,44px); letter-spacing:-1.8px; line-height:1.05; margin:0 0 10px; font-weight:750; }
+  .ch-sub { color:#85857f; font-size:15px; margin:0 0 32px; }
+  .ch-tools { display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-bottom:24px; }
+  .ch-search { flex:1; min-width:220px; max-width:440px; border:1px solid #e3e3df; background:white; color:#252522;
+    border-radius:12px;padding:12px 14px;font:inherit;font-size:14px;outline:none; }
+  .ch-sort { border:1px solid #e3e3df;background:white;color:#333;border-radius:12px;padding:12px;font:inherit;font-size:14px; }
+  .ch-create { border:0;background:#252b3a;color:white;border-radius:12px;padding:12px 17px;font:650 14px inherit;cursor:pointer; }
+  .ch-create:hover { background:#39445e; }
+  .ch-grid { display:grid;grid-template-columns:repeat(auto-fill,minmax(235px,1fr));gap:17px; }
+  .ch-card { min-height:174px;position:relative;border:1px solid #e5e5e1;border-radius:16px;background:white;padding:16px;
+    cursor:pointer;transition:transform .16s,border-color .16s,box-shadow .16s;display:flex;flex-direction:column; }
+  .ch-card:hover { transform:translateY(-3px);border-color:#c8cbd5;box-shadow:0 12px 30px #20202012; }
+  .ch-preview { height:90px;border-radius:10px;margin-bottom:14px;display:grid;place-items:center;overflow:hidden;
+    background-color:#f3f3f0;background-image:linear-gradient(90deg,#e7e7e2 1px,transparent 1px),linear-gradient(#e7e7e2 1px,transparent 1px);background-size:18px 18px; }
+  .ch-preview svg { width:70px;height:50px;opacity:.5; }
+  .ch-card-title { font-size:14px;font-weight:680;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding-right:28px; }
+  .ch-date { color:#92928c;font-size:12px;margin-top:5px; }
+  .ch-more { position:absolute;right:12px;bottom:13px;border:0;background:transparent;color:#777;font-size:21px;cursor:pointer;border-radius:8px;width:30px;height:30px; }
+  .ch-more:hover { background:#f0f0ed;color:#222; }
+  .ch-empty { grid-column:1/-1;padding:55px 20px;text-align:center;border:1px dashed #d8d8d2;border-radius:16px;color:#888; }
+  .ch-empty strong { display:block;color:inherit;margin-bottom:7px;font-size:16px; }
+  :root.dark .ch-card,:root.dark .ch-search,:root.dark .ch-sort { background:#222420;color:#f4f4f1;border-color:#383a34; }
+  :root.dark .ch-preview { background-color:#292b26;background-image:linear-gradient(90deg,#373a33 1px,transparent 1px),linear-gradient(#373a33 1px,transparent 1px); }
+  :root.dark .ch-card { border-color:#383a34; }
+  :root.dark .ch-card:hover { border-color:#666b7a;box-shadow:0 12px 30px #0005; }
+  :root.dark .ch-more:hover { background:#373a33;color:white; }
+  :root.dark .ch-empty { border-color:#44473f; }
+  @media(max-width:600px) { .ch-wrap{padding:28px 18px 44px}.ch-top{margin-bottom:42px}.ch-top-note{display:none}.ch-tools{align-items:stretch}.ch-create{width:100%} }
+`
+document.head.append(homeStyle)
+
+const home = document.createElement('main')
+home.className = 'canvas-home'
+home.innerHTML = `
+  <div class="ch-wrap">
+    <header class="ch-top">
+      <div class="ch-brand"><span class="ch-mark">✳</span><span>Canvas</span></div>
+      <div class="ch-top-note">Your ideas, all in one place</div>
+    </header>
+    <h1 class="ch-heading">Your canvases</h1>
+    <p class="ch-sub">Pick up where you left off, or start with a blank canvas.</p>
+    <div class="ch-tools">
+      <input class="ch-search" id="ch-search" type="search" placeholder="Search canvases…" aria-label="Search canvases">
+      <select class="ch-sort" id="ch-sort" aria-label="Sort canvases">
+        <option value="recent">Recently edited</option><option value="name">Name (A–Z)</option><option value="oldest">Oldest first</option>
+      </select>
+      <button class="ch-create" id="ch-create" type="button">＋ New canvas</button>
+    </div>
+    <section class="ch-grid" id="ch-grid" aria-label="Your canvases"></section>
+  </div>`
+document.body.append(home)
+
+const homeBtn = document.createElement('button')
+homeBtn.className = 'qd-file-btn'
+homeBtn.type = 'button'
+homeBtn.title = 'All canvases'
+homeBtn.setAttribute('aria-label','All canvases')
+homeBtn.innerHTML = '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.2 10 3l7 6.2v7.1a.7.7 0 0 1-.7.7h-4.1v-5H7.8v5H3.7a.7.7 0 0 1-.7-.7z"/></svg>'
+filebar.prepend(homeBtn)
+
+const grid = home.querySelector('#ch-grid')
+const searchBox = home.querySelector('#ch-search')
+const sortBox = home.querySelector('#ch-sort')
+const dateLabel = (timestamp) => {
+  if (!timestamp) return 'Not edited yet'
+  const date = new Date(timestamp)
+  return 'Edited ' + date.toLocaleDateString(undefined,{month:'short',day:'numeric',year:date.getFullYear() !== new Date().getFullYear() ? 'numeric' : undefined})
+}
+
+function renderHome() {
+  const query = searchBox.value.trim().toLowerCase()
+  let files = index.files.filter((file) => file.name.toLowerCase().includes(query))
+  if (sortBox.value === 'name') files.sort((a,b) => a.name.localeCompare(b.name))
+  else if (sortBox.value === 'oldest') files.sort((a,b) => a.updatedAt - b.updatedAt)
+  else files.sort((a,b) => b.updatedAt - a.updatedAt)
+  grid.textContent = ''
+  if (!files.length) {
+    const empty = document.createElement('div')
+    empty.className = 'ch-empty'
+    empty.innerHTML = '<strong>No canvases found</strong>Try another search, or create a new canvas.'
+    grid.append(empty)
+    return
+  }
+  for (const file of files) {
+    const card = document.createElement('article')
+    card.className = 'ch-card'
+    card.tabIndex = 0
+    card.setAttribute('role','button')
+    card.setAttribute('aria-label', 'Open ' + file.name)
+    const preview = document.createElement('div')
+    preview.className = 'ch-preview'
+    preview.innerHTML = '<svg viewBox="0 0 90 60" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M9 42c12-31 19 8 31-13s16 19 27-3 12 4 15-7"/><path d="M12 51h66" opacity=".35"/></svg>'
+    const title = document.createElement('div')
+    title.className = 'ch-card-title'
+    title.textContent = file.name
+    const date = document.createElement('div')
+    date.className = 'ch-date'
+    date.textContent = dateLabel(file.updatedAt)
+    const more = document.createElement('button')
+    more.className = 'ch-more'
+    more.type = 'button'
+    more.textContent = '···'
+    more.title = 'Canvas actions'
+    more.setAttribute('aria-label','Canvas actions for ' + file.name)
+    more.addEventListener('click',(event) => {
+      event.stopPropagation()
+      const action = window.prompt('Enter action: rename, duplicate, or delete','rename')
+      if (!action) return
+      if (action.toLowerCase() === 'rename') {
+        const next = window.prompt('Canvas name',file.name)
+        if (next?.trim()) { file.name = next.trim(); file.updatedAt = Date.now(); saveIndex(); renderHome() }
+      } else if (action.toLowerCase() === 'duplicate') {
+        saveNow()
+        const id = newId()
+        const copyName = file.name + ' copy'
+        const snapshot = localStorage.getItem(fileKey(file.id))
+        index.files.push({id,name:copyName,updatedAt:Date.now()})
+        if (snapshot) localStorage.setItem(fileKey(id),snapshot)
+        saveIndex()
+        renderHome()
+      } else if (action.toLowerCase() === 'delete') {
+        deleteFile(file.id)
+        renderHome()
+      }
+    })
+    card.append(preview,title,date,more)
+    const open = () => { saveNow(); openFile(file.id); home.hidden = true }
+    card.addEventListener('click',open)
+    card.addEventListener('keydown',(event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); open() } })
+    grid.append(card)
+  }
+}
+searchBox.addEventListener('input',renderHome)
+sortBox.addEventListener('change',renderHome)
+home.querySelector('#ch-create').addEventListener('click',() => { createFile(); home.hidden = true })
+homeBtn.addEventListener('click',() => { saveNow(); renderHome(); home.hidden = false; closeMenu() })
+renderHome()
+home.hidden = false
+
 // Remember the theme across visits; the chrome follows the board through the
 // root .dark class (the CSS variables up in index.html key off it).
 const syncTheme = () => {
