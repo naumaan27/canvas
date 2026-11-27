@@ -257,6 +257,14 @@ export function buildUI(editor, { hidden = false, onSave, themeToggle = true, gr
       b.addEventListener('click', (e) => { e.stopPropagation(); editor.setStyle('color', c); restyle() })
       colors.appendChild(b)
     }
+    const customColors = row('qd-custom-colors')
+    customColors.innerHTML = '<label class="qd-custom-color"><span>Border</span><input type="color" aria-label="Custom border colour"></label><label class="qd-custom-color"><span>Fill</span><input type="color" aria-label="Custom fill colour"></label>'
+    const strokePicker = customColors.querySelectorAll('input')[0]
+    const fillPicker = customColors.querySelectorAll('input')[1]
+    strokePicker.value = cur.strokeColor || theme().colors[cur.color || 'blue'].stroke
+    fillPicker.value = cur.fillColor || theme().colors[cur.color || 'blue'].fill
+    strokePicker.addEventListener('input', (e) => { e.stopPropagation(); editor.setStyle('strokeColor', strokePicker.value); restyle() })
+    fillPicker.addEventListener('input', (e) => { e.stopPropagation(); editor.setStyle('fillColor', fillPicker.value); restyle() })
     const sizes = row('qd-sizes')
     SIZE_IDS.forEach((s, i) => {
       const b = el('button', 'qd-opt' + (cur.size === s ? ' on' : ''))
@@ -310,6 +318,9 @@ export function buildUI(editor, { hidden = false, onSave, themeToggle = true, gr
       sizes.querySelectorAll('.qd-opt').forEach((b, i) => b.classList.toggle('on', SIZE_IDS[i] === c2.size))
       dashes.querySelectorAll('.qd-opt').forEach((b, i) => b.classList.toggle('on', DASH_IDS[i] === c2.dash))
       fills.querySelectorAll('.qd-opt').forEach((b, i) => b.classList.toggle('on', FILL_IDS[i] === c2.fill))
+      const base = theme().colors[c2.color || 'blue']
+      strokePicker.value = c2.strokeColor || base.stroke
+      fillPicker.value = c2.fillColor || base.fill
       showOpacity(c2.opacity)
       refresh()
     }
