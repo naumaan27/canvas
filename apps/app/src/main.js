@@ -328,7 +328,16 @@ function renderHome() {
       addAction('Delete', () => {
         if (index.files.length <= 1) return
         const confirmed = window.confirm('Delete “' + file.name + '”? This cannot be undone.')
-        if (confirmed) { index.files = index.files.filter((item) => item.id !== file.id); localStorage.removeItem(fileKey(file.id)); saveIndex(); renderHome() }
+        if (confirmed) {
+          index.files = index.files.filter((item) => item.id !== file.id)
+          localStorage.removeItem(fileKey(file.id))
+          if (index.current === file.id) {
+            const nextFile = [...index.files].sort((a, b) => b.updatedAt - a.updatedAt)[0]
+            if (nextFile) openFile(nextFile.id)
+          }
+          saveIndex()
+          renderHome()
+        }
       }, true)
       card.append(actions)
       actions.addEventListener('click', (e) => e.stopPropagation())
