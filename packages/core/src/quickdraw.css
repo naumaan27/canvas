@@ -247,9 +247,12 @@
 .qd-grid-pop .qd-tool { color: var(--qd-ink); }
 .qd-grid-pop .qd-tool.on { background: var(--qd-on-bg); color: var(--qd-on-ink); }
 
-.qd-style-pop { width: 196px; }
+.qd-style-pop { width: 232px; }
 .qd-row { display: flex; align-items: center; justify-content: space-between; }
 .qd-row + .qd-row { margin-top: 7px; padding-top: 7px; border-top: 1px solid var(--qd-menu-div); }
+.qd-style-pop .qd-custom-colors { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.qd-custom-color { display: flex; align-items: center; justify-content: space-between; gap: 6px; min-width: 0; color: var(--qd-ink-soft); font: 500 11px -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+.qd-custom-color input[type='color'] { width: 30px; height: 26px; padding: 2px; border: 1px solid var(--qd-border); border-radius: 7px; background: var(--qd-bar-bg); cursor: pointer; }
 .qd-colors { display: grid; grid-template-columns: repeat(6, 1fr); gap: 3px; }
 .qd-dot {
   width: 26px;
