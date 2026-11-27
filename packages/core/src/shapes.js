@@ -301,8 +301,8 @@ function hatchPattern(ctx, colorHex, themeId) {
 function fillPath(ctx, path, p, theme) {
   if (!p.fill || p.fill === 'none') return
   if (p.fill === 'semi') ctx.fillStyle = SEMI[theme.id]
-  else if (p.fill === 'pattern') ctx.fillStyle = hatchPattern(ctx, theme.colors[p.color].stroke, theme.id)
-  else ctx.fillStyle = theme.colors[p.color].fill
+  else if (p.fill === 'pattern') ctx.fillStyle = hatchPattern(ctx, p.strokeColor || theme.colors[p.color || 'black'].stroke, theme.id)
+  else ctx.fillStyle = p.fillColor || theme.colors[p.color || 'black'].fill
   ctx.fill(path)
 }
 
@@ -347,7 +347,8 @@ function inkReach(size) {
 export function drawShape(ctx, shape, opts) {
   const { theme } = opts
   const p = shape.props
-  const col = theme.colors[p.color || 'black']
+  const paletteColor = theme.colors[p.color || 'black']
+  const col = { ...paletteColor, stroke: p.strokeColor || paletteColor.stroke }
   ctx.save()
   // the shape's own opacity style, under the eraser's ghosting
   const alpha = (opts.ghost ? 0.3 : 1) * (p.opacity ?? 1)
