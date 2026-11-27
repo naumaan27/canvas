@@ -23,6 +23,7 @@
   "build": {
     "appId": "com.naumaan27.canvas",
     "productName": "Canvas",
+    "icon": "build/icon.png",
     "directories": {
       "output": "release"
     },
@@ -32,6 +33,7 @@
       "package.json"
     ],
     "win": {
+      "icon": "build/icon.ico",
       "target": [
         {
           "target": "nsis",

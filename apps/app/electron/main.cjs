@@ -8,6 +8,7 @@ function createWindow() {
     minWidth: 900,
     minHeight: 600,
     title: 'Canvas',
+    icon: path.join(__dirname, '..', 'build', 'icon.png'),
     backgroundColor: '#111111',
     autoHideMenuBar: true,
     webPreferences: {
