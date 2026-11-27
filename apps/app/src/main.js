@@ -12,7 +12,7 @@ const theme = localStorage.getItem(THEME_KEY) || (prefersDark ? 'dark' : 'light'
 const board = createQuickdraw({
   container: document.getElementById('board'),
   theme,
-  grid: 'lines',
+  grid: 'dots',
   watermark: false,
 })
 
@@ -108,67 +108,26 @@ function sizeNameInput() {
   nameInput.style.width = `${Math.min(20, Math.max(4, nameInput.value.length + 1))}ch`
 }
 
-function renderMenu() {
-  menu.textContent = ''
-  const files = [...index.files].sort((a, b) => b.updatedAt - a.updatedAt)
-  for (const file of files) {
-    const row = document.createElement('div')
-    row.className = `qd-file-row${file.id === index.current ? ' current' : ''}`
-    row.setAttribute('role', 'menuitem')
-
-    const dot = document.createElement('span')
-    dot.className = 'dot'
-    const name = document.createElement('span')
-    name.className = 'name'
-    name.textContent = file.name
-    row.append(dot, name)
-
-    if (index.files.length > 1) {
-      const del = document.createElement('button')
-      del.className = 'del'
-      del.type = 'button'
-      del.textContent = '×'
-      del.title = `Delete “${file.name}”`
-      del.setAttribute('aria-label', `Delete ${file.name}`)
-      del.addEventListener('click', (e) => {
-        e.stopPropagation()
-        deleteFile(file.id)
-      })
-      row.append(del)
-    }
-
-    row.addEventListener('click', () => {
-      closeMenu()
-      if (file.id !== index.current) {
-        saveNow()
-        openFile(file.id)
-      }
-    })
-    menu.append(row)
-  }
-}
-
-function openMenu() {
-  renderMenu()
-  menu.hidden = false
-  filesBtn.setAttribute('aria-expanded', 'true')
-}
-
 function closeMenu() {
-  menu.hidden = true
-  filesBtn.setAttribute('aria-expanded', 'false')
+  if (menu) menu.hidden = true
 }
 
-filesBtn.addEventListener('click', (e) => {
-  e.stopPropagation()
-  menu.hidden ? openMenu() : closeMenu()
+filesBtn.addEventListener('click', () => {
+  saveNow()
+  renderHome()
+  home.hidden = false
 })
 
-document.addEventListener('pointerdown', (e) => {
-  if (!menu.hidden && !menu.contains(e.target) && e.target !== filesBtn) closeMenu()
-})
-document.addEventListener('keydown', (e) => {
-  if (e.key === 'Escape' && !menu.hidden) closeMenu()
+newBtn.addEventListener('click', () => {
+  saveNow()
+  newBtn.classList.add('is-saved')
+  newBtn.title = 'Saved'
+  newBtn.setAttribute('aria-label', 'Canvas saved')
+  setTimeout(() => {
+    newBtn.classList.remove('is-saved')
+    newBtn.title = 'Save canvas'
+    newBtn.setAttribute('aria-label', 'Save canvas')
+  }, 1200)
 })
 
 function createFile() {
@@ -257,6 +216,11 @@ homeStyle.textContent = `
   .ch-date { color:#92928c;font-size:12px;margin-top:5px; }
   .ch-more { position:absolute;right:12px;bottom:13px;border:0;background:transparent;color:#777;font-size:21px;cursor:pointer;border-radius:8px;width:30px;height:30px; }
   .ch-more:hover { background:#f0f0ed;color:#222; }
+  .ch-card-menu { position:absolute;right:12px;bottom:48px;z-index:5;min-width:142px;padding:5px;background:#fff;border:1px solid #deded8;border-radius:10px;box-shadow:0 10px 28px #0002;display:grid;gap:2px; }
+  .ch-card-menu button { border:0;background:transparent;text-align:left;padding:9px 10px;border-radius:7px;font:500 13px inherit;color:#252522;cursor:pointer; }
+  .ch-card-menu button:hover { background:#f0f0ed; }
+  .ch-card-menu button.danger { color:#c0392b; }
+  .ch-rename-input { font:650 14px inherit;min-width:0;width:100%;border:1px solid #777;border-radius:6px;padding:4px;background:transparent;color:inherit; }
   .ch-empty { grid-column:1/-1;padding:55px 20px;text-align:center;border:1px dashed #d8d8d2;border-radius:16px;color:#888; }
   .ch-empty strong { display:block;color:inherit;margin-bottom:7px;font-size:16px; }
   :root.dark .ch-card,:root.dark .ch-search,:root.dark .ch-sort { background:#222420;color:#f4f4f1;border-color:#383a34; }
@@ -264,6 +228,11 @@ homeStyle.textContent = `
   :root.dark .ch-card { border-color:#383a34; }
   :root.dark .ch-card:hover { border-color:#666b7a;box-shadow:0 12px 30px #0005; }
   :root.dark .ch-more:hover { background:#373a33;color:white; }
+  :root.dark .ch-card-menu { background:#292b26;border-color:#44473f;box-shadow:0 10px 28px #0008; }
+  :root.dark .ch-card-menu button { color:#f4f4f1; }
+  :root.dark .ch-card-menu button:hover { background:#3a3d36; }
+  :root.dark .ch-card-menu button.danger { color:#ff8d80; }
+  :root.dark .ch-rename-input { color:#f4f4f1;border-color:#777; }
   :root.dark .ch-empty { border-color:#44473f; }
   @media(max-width:600px) { .ch-wrap{padding:28px 18px 44px}.ch-top{margin-bottom:42px}.ch-top-note{display:none}.ch-tools{align-items:stretch}.ch-create{width:100%} }
 `
@@ -289,14 +258,6 @@ home.innerHTML = `
     <section class="ch-grid" id="ch-grid" aria-label="Your canvases"></section>
   </div>`
 document.body.append(home)
-
-const homeBtn = document.createElement('button')
-homeBtn.className = 'qd-file-btn'
-homeBtn.type = 'button'
-homeBtn.title = 'All canvases'
-homeBtn.setAttribute('aria-label','All canvases')
-homeBtn.innerHTML = '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.2 10 3l7 6.2v7.1a.7.7 0 0 1-.7.7h-4.1v-5H7.8v5H3.7a.7.7 0 0 1-.7-.7z"/></svg>'
-filebar.prepend(homeBtn)
 
 const grid = home.querySelector('#ch-grid')
 const searchBox = home.querySelector('#ch-search')
@@ -344,24 +305,50 @@ function renderHome() {
     more.setAttribute('aria-label','Canvas actions for ' + file.name)
     more.addEventListener('click',(event) => {
       event.stopPropagation()
-      const action = window.prompt('Enter action: rename, duplicate, or delete','rename')
-      if (!action) return
-      if (action.toLowerCase() === 'rename') {
-        const next = window.prompt('Canvas name',file.name)
-        if (next?.trim()) { file.name = next.trim(); file.updatedAt = Date.now(); saveIndex(); renderHome() }
-      } else if (action.toLowerCase() === 'duplicate') {
-        saveNow()
-        const id = newId()
-        const copyName = file.name + ' copy'
-        const snapshot = localStorage.getItem(fileKey(file.id))
-        index.files.push({id,name:copyName,updatedAt:Date.now()})
-        if (snapshot) localStorage.setItem(fileKey(id),snapshot)
-        saveIndex()
-        renderHome()
-      } else if (action.toLowerCase() === 'delete') {
-        deleteFile(file.id)
-        renderHome()
+      grid.querySelectorAll('.ch-card-menu').forEach((node) => node.remove())
+      const actions = document.createElement('div')
+      actions.className = 'ch-card-menu'
+      const addAction = (label, fn, danger = false) => {
+        const button = document.createElement('button')
+        button.type = 'button'
+        button.textContent = label
+        if (danger) button.classList.add('danger')
+        button.addEventListener('click', (e) => { e.stopPropagation(); actions.remove(); fn() })
+        actions.append(button)
       }
+      addAction('Rename', () => {
+        const input = document.createElement('input')
+        input.className = 'ch-rename-input'
+        input.value = file.name
+        input.setAttribute('aria-label', 'Canvas name')
+        title.replaceWith(input)
+        input.focus(); input.select()
+        const commit = () => {
+          const value = input.value.trim()
+          if (value) { file.name = value; file.updatedAt = Date.now(); saveIndex() }
+          renderHome()
+        }
+        input.addEventListener('keydown', (e) => {
+          e.stopPropagation()
+          if (e.key === 'Enter') commit()
+          if (e.key === 'Escape') renderHome()
+        })
+        input.addEventListener('blur', commit, { once: true })
+      })
+      addAction('Duplicate', () => {
+        const snapshot = localStorage.getItem(fileKey(file.id))
+        const id = newId()
+        index.files.push({ id, name: file.name + ' copy', updatedAt: Date.now() })
+        if (snapshot) localStorage.setItem(fileKey(id), snapshot)
+        saveIndex(); renderHome()
+      })
+      addAction('Delete', () => {
+        if (index.files.length <= 1) return
+        const confirmed = window.confirm('Delete “' + file.name + '”? This cannot be undone.')
+        if (confirmed) { index.files = index.files.filter((item) => item.id !== file.id); localStorage.removeItem(fileKey(file.id)); saveIndex(); renderHome() }
+      }, true)
+      card.append(actions)
+      actions.addEventListener('click', (e) => e.stopPropagation())
     })
     card.append(preview,title,date,more)
     const open = () => { saveNow(); openFile(file.id); home.hidden = true }
@@ -373,7 +360,7 @@ function renderHome() {
 searchBox.addEventListener('input',renderHome)
 sortBox.addEventListener('change',renderHome)
 home.querySelector('#ch-create').addEventListener('click',() => { createFile(); home.hidden = true })
-homeBtn.addEventListener('click',() => { saveNow(); renderHome(); home.hidden = false; closeMenu() })
+
 renderHome()
 home.hidden = false
 
