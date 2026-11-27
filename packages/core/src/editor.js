@@ -35,11 +35,11 @@ const bendMidpoint = (pr) => {
 }
 
 export class Editor {
-  constructor({ container, store, theme = 'light', grid = 'lines', readonly = false, camera, styles, geoKind } = {}) {
+  constructor({ container, store, theme = 'light', grid = 'dots', readonly = false, camera, styles, geoKind } = {}) {
     this.container = container
     this.store = store || new Store()
     this.theme = themeOf(theme)
-    this.grid = GRID_IDS.includes(grid) ? grid : 'lines'
+    this.grid = GRID_IDS.includes(grid) ? grid : 'dots'
     this.readonly = !!readonly
     this.camera = camera || { x: 0, y: 0, z: 1 }
     this.styles = { ...DEFAULT_STYLES, ...(styles || {}) }
@@ -360,11 +360,6 @@ export class Editor {
   }
   setStyle(key, value) {
     this.styles = { ...this.styles, [key]: value }
-    // Choosing a palette colour restores its linked stroke/fill palette pair.
-    if (key === 'color') {
-      this.styles.strokeColor = null
-      this.styles.fillColor = null
-    }
     if (this.selection.size) {
       const APPLIES = {
         color: ['draw', 'highlight', 'geo', 'arrow', 'line', 'text', 'note'],
@@ -379,14 +374,20 @@ export class Editor {
       this.store.transact(() => {
         for (const id of this.selection) {
           const s = this.store.get(id)
-          if (s && APPLIES[key]?.includes(s.type)) {
-            const props = key === 'color' && s.type === 'geo'
-              ? { color: value, strokeColor: null, fillColor: null }
-              : { [key]: value }
-            this.store.update(id, { props })
+          if (!s || !APPLIES[key]?.includes(s.type)) continue
+          if (key === 'color' && s.type === 'geo') {
+            // The palette now changes the border only. Freeze the current fill
+            // before changing the palette key so it cannot unexpectedly shift.
+            const previousFill = s.props.fillColor || this.theme.colors[s.props.color || 'black'].fill
+            this.store.update(id, { props: { color: value, strokeColor: this.theme.colors[value].stroke, fillColor: previousFill } })
+          } else {
+            this.store.update(id, { props: { [key]: value } })
           }
         }
       })
+    }
+    if (key === 'color' && !this.selection.size) {
+      this.styles.strokeColor = this.theme.colors[value].stroke
     }
     this.emit('styles')
   }
