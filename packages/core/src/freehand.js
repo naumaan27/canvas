@@ -44,9 +44,14 @@ const easeOutSine = (t) => Math.sin((t * PI) / 2)
  */
 export function inkOptions(width, { isPen = false, done = false } = {}) {
   if (isPen) {
+    // A stylus has real pressure data, so preserve the expressive pressure curve.
     return { size: width * 1.2, thinning: 0.6, smoothing: 0.6, streamline: 0.6, simulatePressure: false, easing: easeOutSine, last: done }
   }
-  return { size: width, thinning: 0.5, smoothing: 0.6, streamline: 0.6, simulatePressure: true, easing: easeOutSine, last: done }
+  // Mouse input has no physical pressure sensor. Simulating pressure from
+  // pointer speed made configured sizes collapse toward similar thin strokes,
+  // especially during fast desktop drawing. Keep mouse strokes a consistent,
+  // exact width so S / M / L / XL are visibly distinct.
+  return { size: width, thinning: 0, smoothing: 0.6, streamline: 0.6, simulatePressure: false, easing: easeOutSine, last: done }
 }
 
 /** The stroke's outline polygon, flat [x, y, ...] (perfect-freehand's getStroke). */
