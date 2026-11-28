@@ -264,7 +264,14 @@ export function buildUI(editor, { hidden = false, onSave, themeToggle = true, gr
     strokePicker.value = cur.strokeColor || theme().colors[cur.color || 'blue'].stroke
     fillPicker.value = cur.fillColor || theme().colors[cur.color || 'blue'].fill
     strokePicker.addEventListener('input', (e) => { e.stopPropagation(); editor.setStyle('strokeColor', strokePicker.value); restyle() })
-    fillPicker.addEventListener('input', (e) => { e.stopPropagation(); editor.setStyle('fillColor', fillPicker.value); restyle() })
+    fillPicker.addEventListener('input', (e) => {
+      e.stopPropagation()
+      // Picking a colour should make the fill visible immediately; otherwise
+      // the default `fill: none` silently hides the chosen colour.
+      editor.setStyle('fillColor', fillPicker.value)
+      editor.setStyle('fill', 'solid')
+      restyle()
+    })
     const sizes = row('qd-sizes')
     SIZE_IDS.forEach((s, i) => {
       const b = el('button', 'qd-opt' + (cur.size === s ? ' on' : ''))
